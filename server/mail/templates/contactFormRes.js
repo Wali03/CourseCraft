@@ -75,7 +75,7 @@ exports.contactUsEmail = (
   <body>
       <div class="container">
           <a href="https://course-craft-mu.vercel.app"><img class="logo"
-                  src="https://ibb.co/Yh1v35n" alt="CourseCraft Logo"></a>
+                  src="https://i.ibb.co/9nFqsdh/logo.png" alt="CourseCraft Logo"></a>
           <div class="message">Contact Form Confirmation</div>
           <div class="body">
               <p>Dear ${firstname} ${lastname},</p>

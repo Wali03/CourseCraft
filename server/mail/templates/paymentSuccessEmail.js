@@ -67,7 +67,7 @@ exports.paymentSuccessEmail = (name, amount, orderId, paymentId) => {
     
     <body>
         <div class="container">
-            <a href="https://course-craft-mu.vercel.app"><img class="logo" src="https://ibb.co/Yh1v35n"
+            <a href="https://course-craft-mu.vercel.app"><img class="logo" src="https://i.ibb.co/9nFqsdh/logo.png"
                     alt="CourseCraft Logo"></a>
             <div class="message">Course Payment Confirmation</div>
             <div class="body">
