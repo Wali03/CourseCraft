@@ -1,17 +1,8 @@
 import React, { useEffect, useState } from "react"
 import ReactStars from "react-rating-stars-component"
-// Import Swiper React components
-import { Swiper, SwiperSlide } from "swiper/react"
-
-// Import Swiper styles
-import "swiper/css"
-import "swiper/css/free-mode"
-import "swiper/css/pagination"
-import "../../App.css"
-// Icons
 import { FaStar } from "react-icons/fa"
-// Import required modules
-import { Autoplay, FreeMode, Pagination } from "swiper"
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa"
+import "../../App.css"
 
 // Get apiFunction and the endpoint
 import { apiConnector } from "../../services/apiConnector"
@@ -19,6 +10,8 @@ import { ratingsEndpoints } from "../../services/apis"
 
 function ReviewSlider() {
   const [reviews, setReviews] = useState([])
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024)
   const truncateWords = 15
 
   useEffect(() => {
@@ -33,27 +26,76 @@ function ReviewSlider() {
     })()
   }, [])
 
-  // console.log(reviews)
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth)
+    }
+    
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  // Auto-slide functionality
+  useEffect(() => {
+    if (reviews.length === 0) return
+    
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) => 
+        prevIndex === reviews.length - 1 ? 0 : prevIndex + 1
+      )
+    }, 3000)
+    
+    return () => clearInterval(interval)
+  }, [reviews])
+
+  const handlePrev = () => {
+    setCurrentIndex((prevIndex) => 
+      prevIndex === 0 ? reviews.length - 1 : prevIndex - 1
+    )
+  }
+
+  const handleNext = () => {
+    setCurrentIndex((prevIndex) => 
+      prevIndex === reviews.length - 1 ? 0 : prevIndex + 1
+    )
+  }
+
+  // Function to determine visible reviews based on screen size
+  const getVisibleReviews = () => {
+    if (!reviews.length) return []
+    
+    const isMobile = windowWidth < 640
+    const isTablet = windowWidth >= 640 && windowWidth < 1024
+    
+    const visibleCount = isMobile ? 1 : isTablet ? 2 : 4
+    const result = []
+    
+    for (let i = 0; i < visibleCount && i < reviews.length; i++) {
+      const index = (currentIndex + i) % reviews.length
+      result.push(reviews[index])
+    }
+    
+    return result
+  }
+
+  const visibleReviews = getVisibleReviews()
 
   return (
     <div className="text-white">
-      <div className="my-[50px] h-[184px] max-w-maxContentTab lg:max-w-maxContent">
-        <Swiper
-          slidesPerView={4}
-          spaceBetween={25}
-          loop={true}
-          freeMode={true}
-          autoplay={{
-            delay: 2500,
-            disableOnInteraction: false,
-          }}
-          modules={[FreeMode, Pagination, Autoplay]}
-          className="w-full "
-        >
-          {reviews.map((review, i) => {
-            return (
-              <SwiperSlide key={i}>
-                <div className="flex flex-col gap-3 bg-richblack-800 p-3 text-[14px] text-richblack-25">
+      <div className="my-[50px] max-w-maxContentTab lg:max-w-maxContent mx-auto relative">
+        {reviews.length > 0 && (
+          <>
+            <div className="flex space-x-4 overflow-hidden">
+              {visibleReviews.map((review, i) => (
+                <div 
+                  key={i} 
+                  className="flex-shrink-0 min-w-[250px] md:min-w-[300px] flex flex-col gap-3 bg-richblack-800 p-3 text-[14px] text-richblack-25 rounded-lg h-full"
+                  style={{ 
+                    width: windowWidth < 640 ? '100%' : 
+                           windowWidth < 1024 ? '48%' : '23%' 
+                  }}
+                >
                   <div className="flex items-center gap-4">
                     <img
                       src={
@@ -79,7 +121,7 @@ function ReviewSlider() {
                           .join(" ")} ...`
                       : `${review?.review}`}
                   </p>
-                  <div className="flex items-center gap-2 ">
+                  <div className="flex items-center gap-2">
                     <h3 className="font-semibold text-yellow-100">
                       {review.rating.toFixed(1)}
                     </h3>
@@ -94,11 +136,40 @@ function ReviewSlider() {
                     />
                   </div>
                 </div>
-              </SwiperSlide>
-            )
-          })}
-          {/* <SwiperSlide>Slide 1</SwiperSlide> */}
-        </Swiper>
+              ))}
+            </div>
+            
+            {/* Navigation buttons */}
+            <button 
+              onClick={handlePrev}
+              className="absolute top-1/2 left-0 -translate-y-1/2 -translate-x-1/2 bg-richblack-900 text-white p-2 rounded-full shadow-md hover:bg-richblack-700 transition-all z-10"
+              aria-label="Previous review"
+            >
+              <FaChevronLeft />
+            </button>
+            <button 
+              onClick={handleNext}
+              className="absolute top-1/2 right-0 -translate-y-1/2 translate-x-1/2 bg-richblack-900 text-white p-2 rounded-full shadow-md hover:bg-richblack-700 transition-all z-10"
+              aria-label="Next review"
+            >
+              <FaChevronRight />
+            </button>
+            
+            {/* Dots indicator */}
+            <div className="flex justify-center mt-4 space-x-2">
+              {reviews.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentIndex(i)}
+                  className={`w-2 h-2 rounded-full ${
+                    i === currentIndex ? "bg-yellow-100" : "bg-richblack-600"
+                  }`}
+                  aria-label={`Go to review ${i + 1}`}
+                />
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
